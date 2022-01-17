@@ -5,4 +5,4 @@ Pillow==8.3.1
 aiohttp==3.7.4.post0
 python-multipart==0.0.5
 requests==2.25.1
-uvicorn==0.14.0
+uvicorn==0.15.0
