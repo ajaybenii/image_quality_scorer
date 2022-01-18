@@ -60,8 +60,8 @@ async def image_scorer(check_image: URL):
     format_ = get_format(filename) #here format_ store the type of image by filename
     
     def calculate_contrast (image):
-        image.save("original_img.jpg")  
-        img = cv2.imread("original_img.jpg")
+        image.save("original_img."+format_)  
+        img = cv2.imread("original_img."+format_)
         Y = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)[:,:,0]
 
         # compute min and max of Y
@@ -76,8 +76,8 @@ async def image_scorer(check_image: URL):
 
     def calculate_sharpness(image): #here calculate the sharpness 
 
-        image.save("original_img.jpg")
-        img = cv2.imread("original_img.jpg", cv2.IMREAD_GRAYSCALE)
+        image.save("original_img."+format_)
+        img = cv2.imread("original_img."+format_, cv2.IMREAD_GRAYSCALE)
         laplacian_var = cv2.Laplacian(img, cv2.CV_64F).var()
         
         return laplacian_var
