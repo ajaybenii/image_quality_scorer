@@ -80,7 +80,29 @@ async def image_scorer(check_image: URL):
         img = cv2.imread("original_img."+format_, cv2.IMREAD_GRAYSCALE)
         laplacian_var = cv2.Laplacian(img, cv2.CV_64F).var()
         
-        return laplacian_var
+        if laplacian_var > 500:
+            result = 10
+        if laplacian_var > 300 and laplacian_var < 500:
+            result = 9
+        if laplacian_var > 200 and laplacian_var < 300:
+            result = 8
+        if laplacian_var > 115 and laplacian_var < 200:
+            result = 7
+        if laplacian_var > 100 and laplacian_var < 115:
+            result = 6
+        if laplacian_var > 90  and laplacian_var < 100:
+            result = 5
+        if laplacian_var > 80 and laplacian_var < 90:
+            result = 4
+        if laplacian_var > 70 and laplacian_var < 80:
+            result = 3
+        if laplacian_var > 60 and laplacian_var < 70:
+            result = 2
+        if laplacian_var > 1 and  laplacian_var < 60:
+            result = 1  
+        
+        return result
+#         return laplacian_var
     
       
     def calculate_brightness(image): #here calculate the brightness
@@ -104,5 +126,5 @@ async def image_scorer(check_image: URL):
     image.save(buffer, format=format_)
     buffer.seek(0)
 
-    return result_check1
+    return result
 
