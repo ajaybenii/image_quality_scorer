@@ -118,7 +118,7 @@ async def image_scorer(check_image: URL):
         return 1 if brightness == 255 else brightness / scale
     
     result_check3 = ("contrast level",calculate_contrast(image))
-    result_check1 = (calculate_sharpness(image)/10)
+    result_check1 = calculate_sharpness(image)
     s2 = slice(0,6)
     result_check2 = ("Brightness Level",calculate_brightness(image))
     
@@ -126,5 +126,5 @@ async def image_scorer(check_image: URL):
     image.save(buffer, format=format_)
     buffer.seek(0)
 
-    return result
+    return result_check1
 
