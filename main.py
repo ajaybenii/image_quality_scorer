@@ -6,7 +6,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 import numpy as np
-from PIL import Image
+from PIL import Image,ImageEnhance
 from pydantic import BaseModel
 from fastapi import FastAPI,HTTPException
 from fastapi.responses import StreamingResponse
@@ -56,56 +56,22 @@ async def image_scorer(check_image: URL):
             format_ = "WebP"
     
         return format_
+    
+    def get_content_type(format_):
+        type_ = "image/jpeg"
+        if format_ == "gif":
+            type_ = "image/gif"
+        elif format_ == "webp":
+            type_ = "image/webp"
+        elif format_ == "png":
+            type_ = "image/png"
+        print(type_)
+        
+        return type_
 
     format_ = get_format(filename) #here format_ store the type of image by filename
-    
-    def calculate_contrast (image):
-        image.save("original_img."+format_)  
-        img = cv2.imread("original_img."+format_)
-        Y = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)[:,:,0]
 
-        # compute min and max of Y
-        min = np.min(Y)
-        max = np.max(Y)
-
-        # compute contrast
-        contrast = (max-min)/(max+min)
-        print(min,max,contrast)
-        return (min,max,contrast)
-
-
-    def calculate_sharpness(image): #here calculate the sharpness 
-
-        image.save("original_img."+format_)
-        img = cv2.imread("original_img."+format_, cv2.IMREAD_GRAYSCALE)
-        laplacian_var = cv2.Laplacian(img, cv2.CV_64F).var()
-        
-        if laplacian_var > 500:
-            result = 10
-        if laplacian_var > 300 and laplacian_var < 500:
-            result = 9
-        if laplacian_var > 200 and laplacian_var < 300:
-            result = 8
-        if laplacian_var > 115 and laplacian_var < 200:
-            result = 7
-        if laplacian_var > 100 and laplacian_var < 115:
-            result = 6
-        if laplacian_var > 90  and laplacian_var < 100:
-            result = 5
-        if laplacian_var > 80 and laplacian_var < 90:
-            result = 4
-        if laplacian_var > 70 and laplacian_var < 80:
-            result = 3
-        if laplacian_var > 60 and laplacian_var < 70:
-            result = 2
-        if laplacian_var > 1 and  laplacian_var < 60:
-            result = 1  
-        
-        return result
-#         return laplacian_var
-    
-      
-    def calculate_brightness(image): #here calculate the brightness
+    def calculate_brightness(image):
         greyscale_image = image.convert('L')
         histogram = greyscale_image.histogram()
         pixels = sum(histogram)
@@ -116,15 +82,126 @@ async def image_scorer(check_image: URL):
             brightness += ratio * (-scale + index)
 
         return 1 if brightness == 255 else brightness / scale
+    bright1 = calculate_brightness(image)
+    print("b_bright",calculate_brightness(image))
+
+    def calculate_sharpness(image): #here calculate the sharpness 
+        image = Image.open(BytesIO(contents))
+        image.save("original_img."+format_)
+
+        try:
+            img = cv2.imread("original_img."+format_, cv2.IMREAD_GRAYSCALE)
+            laplacian_var = cv2.Laplacian(img, cv2.CV_64F).var()
+            print("sharpness try", laplacian_var)
+
+            img_c = cv2.imread("original_img."+format_)
+            Y = cv2.cvtColor(img_c, cv2.COLOR_BGR2YUV)[:,:,0]
+
+            # compute min and max of Y
+            min = np.min(Y)
+            max = np.max(Y)
+
+            # compute contrast
+            contrast = (max-min)/(max+min)
+            print("try min=",min)
+
+            img_s = cv2.imread("original_img."+format_)
+            img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
+            saturation = img_hsv[:, :, 1].mean()
+
+            print("saturation try",saturation)
+
+        except:
+            img_s = cv2.imread("original_img."+format_)
+            img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
+            saturation = img_hsv[:, :, 1].mean()
+
+            print("saturation",saturation)
+
+            img = cv2.imread("original_img."+format_, cv2.IMREAD_GRAYSCALE)
+            laplacian_var = cv2.Laplacian(img, cv2.CV_64F).var()
+            print("lap except", laplacian_var)
+
+        
+        if laplacian_var > 500:
+            result = 10
+
+        if laplacian_var > 290 and laplacian_var < 500:
+            result = 9
+
+        if laplacian_var > 135 and laplacian_var < 290:
+            result = 8
+
+        if laplacian_var > 105 and laplacian_var < 135:
+            result = 7
+
+        if laplacian_var > 80 and laplacian_var < 105:
+            result = 6
+
+        if laplacian_var > 70  and laplacian_var < 80:
+            result = 5
+
+        if laplacian_var > 60 and laplacian_var < 70:
+            result = 4
+
+        if laplacian_var > 50 and laplacian_var < 60:
+            result = 3
+
+        if laplacian_var > 45 and laplacian_var < 50:
+            result = 2
+
+        if laplacian_var > 1 and  laplacian_var < 45:
+            result = 1  
+
+        if min < 9 and laplacian_var < 100 and laplacian_var >40:
+            result = 8
+
+        if min >3 and laplacian_var >250:
+            result = 8
+
+        if saturation > 115 and laplacian_var >400:
+            result = 9
+
+        if saturation > 130 and laplacian_var >300:
+            result = 8
+
+        if saturation < 85 and laplacian_var < 50:
+            result = 3
+
+        if saturation < 103 and saturation > 85 and laplacian_var < 60 and laplacian_var >40:
+            result = 6
+
+        if min < 5 and laplacian_var < 30:
+            result = 4
+
+        if saturation > 147 and saturation <165:
+            result = 7
+
+        if saturation > 175:
+            result = 3
+        if saturation < 85 and laplacian_var < 50 and min > 1:
+            result=3
+        if min < 1  and laplacian_var < 40:
+            result = 5
+        if bright1 > 0.63 and laplacian_var < 40 and saturation < 40:
+            result = 7
+        if laplacian_var < 50 and min < 1 and saturation <50:
+            result = 7
+        return result
+
+    img_s = cv2.imread("original_img."+format_)
+    img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
+    saturation = img_hsv[:, :, 1].mean()
     
-    result_check3 = ("contrast level",calculate_contrast(image))
+    
     result_check1 = calculate_sharpness(image)
     s2 = slice(0,6)
-    result_check2 = ("Brightness Level",calculate_brightness(image))
-    
+
     buffer = BytesIO()
     image.save(buffer, format=format_)
     buffer.seek(0)
 
     return result_check1
+ 
+
 
