@@ -189,11 +189,6 @@ async def image_scorer(check_image: URL):
             result = 7
         return result
 
-    img_s = cv2.imread("original_img."+format_)
-    img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
-    saturation = img_hsv[:, :, 1].mean()
-    
-    
     result_check1 = calculate_sharpness(image)
     s2 = slice(0,6)
 
