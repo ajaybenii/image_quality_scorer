@@ -17,6 +17,7 @@ app = FastAPI(
     description="Use this API to get the image score",
     version="2.0.1",
 )
+
  
 class URL(BaseModel):
     url_: str
@@ -34,8 +35,22 @@ async def image_scorer(check_image: URL):
        take input as original image
     '''
     URL1 = check_image.url_
-    filename = extract_filename(URL1)
-    filename = filename.strip()
+
+    try:
+        filename = extract_filename(URL1)
+        filename = filename.strip()
+
+    except Exception:
+        ##logger.info("Error: HTTPException(status_code=406, detail=Not a valid URL)")
+        raise HTTPException(status_code=406, detail="Not a valid URL")
+ 
+    if URL1.lower().endswith((".jpg", ".png", ".jpeg", ".gif", ".webp",".jfif")) == False:
+        ##logger.info("Error: HTTPException(status_code=406, detail=Not a valid URL)")
+        raise HTTPException(status_code=406, detail="Not a valid URL")
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(URL1) as resp:
+            contents = await resp.read()
   
     async with aiohttp.ClientSession() as session:
         async with session.get(URL1) as resp:
@@ -48,7 +63,6 @@ async def image_scorer(check_image: URL):
 
     #this function get the format type of input image
     def get_format(filename):
-
         format_ = filename.split(".")[-1]
         if format_.lower() == "jpg":
             format_ = "jpeg"
@@ -57,18 +71,6 @@ async def image_scorer(check_image: URL):
     
         return format_
     
-    def get_content_type(format_):
-        type_ = "image/jpeg"
-        if format_ == "gif":
-            type_ = "image/gif"
-        elif format_ == "webp":
-            type_ = "image/webp"
-        elif format_ == "png":
-            type_ = "image/png"
-        print(type_)
-        
-        return type_
-
     format_ = get_format(filename) #here format_ store the type of image by filename
 
     def calculate_brightness(image):
@@ -96,7 +98,6 @@ async def image_scorer(check_image: URL):
 
             img_c = cv2.imread("original_img."+format_)
             Y = cv2.cvtColor(img_c, cv2.COLOR_BGR2YUV)[:,:,0]
-
             # compute min and max of Y
             min = np.min(Y)
             max = np.max(Y)
@@ -108,20 +109,17 @@ async def image_scorer(check_image: URL):
             img_s = cv2.imread("original_img."+format_)
             img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
             saturation = img_hsv[:, :, 1].mean()
-
             print("saturation try",saturation)
 
         except:
             img_s = cv2.imread("original_img."+format_)
             img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
             saturation = img_hsv[:, :, 1].mean()
-
             print("saturation",saturation)
 
             img = cv2.imread("original_img."+format_, cv2.IMREAD_GRAYSCALE)
             laplacian_var = cv2.Laplacian(img, cv2.CV_64F).var()
             print("lap except", laplacian_var)
-
         
         if laplacian_var > 500:
             result = 10
@@ -179,16 +177,25 @@ async def image_scorer(check_image: URL):
 
         if saturation > 175:
             result = 3
+
         if saturation < 85 and laplacian_var < 50 and min > 1:
             result=3
+            
         if min < 1  and laplacian_var < 40:
             result = 5
+
         if bright1 > 0.63 and laplacian_var < 40 and saturation < 40:
             result = 7
+
         if laplacian_var < 50 and min < 1 and saturation <50:
             result = 7
+
+        if bright1 < 0.3:
+            result = 3
+ 
         return result
 
+    
     result_check1 = calculate_sharpness(image)
     s2 = slice(0,6)
 
@@ -197,6 +204,3 @@ async def image_scorer(check_image: URL):
     buffer.seek(0)
 
     return result_check1
- 
-
-
