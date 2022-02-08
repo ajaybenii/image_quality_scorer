@@ -203,4 +203,4 @@ async def image_scorer(check_image: URL):
     image.save(buffer, format=format_)
     buffer.seek(0)
 
-    return result_check1
+    return result_check1/10
