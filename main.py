@@ -29,12 +29,12 @@ def extract_filename(URL):
 
 
 @app.post("/sqy_image")
-async def image_scorer(check_image: URL): 
+async def image_scorer(URL1): 
 
     '''This function get image from your system or
        take input as original image
     '''
-    URL1 = check_image.url_
+#     URL1 = check_image.url_
 
     try:
         filename = extract_filename(URL1)
@@ -193,7 +193,7 @@ async def image_scorer(check_image: URL):
         if bright1 < 0.3:
             result = 3
  
-        return result
+        return {"score_": result}
 
     
     result_check1 = calculate_sharpness(image)
