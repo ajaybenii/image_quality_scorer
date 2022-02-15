@@ -193,7 +193,7 @@ async def image_scorer(URL1):
         if bright1 < 0.3:
             result = 3
  
-        return {"score_": result}
+        return result
 
     
     result_check1 = calculate_sharpness(image)
@@ -203,4 +203,4 @@ async def image_scorer(URL1):
     image.save(buffer, format=format_)
     buffer.seek(0)
 
-    return result_check1/10
+    return ({"score_":result_check1/10})
