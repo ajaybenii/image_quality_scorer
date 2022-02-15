@@ -28,7 +28,7 @@ def extract_filename(URL):
     return os.path.basename(parsed.path)
 
 
-@app.post("/sqy_image")
+@app.get("/sqy_image")
 async def image_scorer(URL1): 
 
     '''This function get image from your system or
