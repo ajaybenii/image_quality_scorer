@@ -209,7 +209,7 @@ async def image_scorer(URL1):
 class URL1(BaseModel):
     url_: list
  
-@app.post("/sqy_image")
+@app.post("/image_scorer")
 async def image_scorer(image_url:URL1): 
 
     '''This function get image from your system or
