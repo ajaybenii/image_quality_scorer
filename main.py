@@ -2,7 +2,7 @@ import os
 import aiohttp
 import cv2
 from io import BytesIO
-from typing import Optional
+from typing import Optional,List
 from urllib.parse import urlparse
 
 import PIL
@@ -207,7 +207,7 @@ async def image_scorer(URL1):
     return ({"score_":result_check1/10})
 
 class URL1(BaseModel):
-    url_: list
+    url_: List[str] = []
  
 @app.post("/image_scorer")
 async def image_scorer(image_url:URL1): 
